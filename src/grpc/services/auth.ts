@@ -5,7 +5,7 @@ import { Logger } from 'pino';
 export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => ({
   Login: (call, callback) => {
     logger.info('Login called');
-    callback(null, { token: 'stub-token', refreshToken: 'stub-refresh-token', user: { id: '1', email: 'test@example.com', role: 'FARMER' } });
+    callback(null, { token: 'stub-token', refreshToken: 'stub-refresh-token' });
   },
   Logout: (call, callback) => {
     logger.info('Logout called');
@@ -17,6 +17,6 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => ({
   },
   VerifyToken: (call, callback) => {
     logger.info('VerifyToken called');
-    callback(null, { valid: true, userId: '1', role: 'FARMER' });
+    callback(null, { valid: true, userId: '1' });
   }
 });
