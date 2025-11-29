@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger, asyncLocalStorage } from '../utils/logger';
 
 export const requestLogger = pinoHttp({
-    logger,
+    logger: logger as any,
     genReqId: (req: Request) => {
         const traceId = req.headers['x-trace-id'] as string || uuidv4();
         req.headers['x-trace-id'] = traceId; // Ensure header is present for downstream

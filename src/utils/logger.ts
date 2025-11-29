@@ -1,35 +1,38 @@
 import pino from 'pino';
+import os from 'os';
 import { AsyncLocalStorage } from 'async_hooks';
 
-// AsyncLocalStorage for tracing context
 export const asyncLocalStorage = new AsyncLocalStorage<{ traceId: string }>();
 
-const isProduction = process.env.NODE_ENV === 'production';
+const serviceName = 'cropfresh-service-auth';
+const logLevel = process.env.LOG_LEVEL || 'info';
+const env = process.env.NODE_ENV || 'development';
 
-const transport = isProduction
-    ? undefined
-    : {
+export const logger = pino({
+    level: logLevel,
+    redact: {
+        paths: ['password', 'token', 'authorization', 'headers.authorization', 'user.password'],
+        remove: true,
+    },
+    transport: env === 'development' ? {
         target: 'pino-pretty',
         options: {
             colorize: true,
             translateTime: 'SYS:standard',
             ignore: 'pid,hostname',
         },
-    };
-
-export const logger = pino({
-    level: process.env.LOG_LEVEL || 'info',
-    transport,
+    } : undefined,
     base: {
-        service: process.env.SERVICE_NAME || 'cropfresh-service-auth',
-        env: process.env.NODE_ENV || 'development',
+        pid: process.pid,
+        hostname: os.hostname(),
+        service: serviceName,
+        env: env,
     },
-    redact: {
-        paths: ['password', 'token', 'authorization', 'headers.authorization'],
-        censor: '[REDACTED]',
-    },
-    mixin() {
+    timestamp: pino.stdTimeFunctions.isoTime,
+    mixin: () => {
         const store = asyncLocalStorage.getStore();
         return store ? { trace_id: store.traceId } : {};
     },
 });
+
+export default logger;
