@@ -11,6 +11,8 @@ export interface ProtoGrpcType {
   cropfresh: {
     auth: {
       AuthService: SubtypeConstructor<typeof grpc.Client, _cropfresh_auth_AuthServiceClient> & { service: _cropfresh_auth_AuthServiceDefinition }
+      CreateFarmerAccountRequest: MessageTypeDefinition
+      CreateFarmerAccountResponse: MessageTypeDefinition
       LoginRequest: MessageTypeDefinition
       LoginResponse: MessageTypeDefinition
       LogoutRequest: MessageTypeDefinition

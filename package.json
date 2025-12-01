@@ -7,7 +7,8 @@
         "build": "tsc",
         "dev": "nodemon --watch src --exec ts-node src/index.ts",
         "start": "node dist/index.js",
-        "proto:generate": "proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=src/protos protos/proto/auth.proto protos/proto/catalog.proto protos/proto/order.proto protos/proto/logistics.proto protos/proto/payment.proto protos/proto/ai.proto"
+        "proto:generate": "proto-loader-gen-types --longs=String --enums=String --defaults --oneofs --grpcLib=@grpc/grpc-js --outDir=src/protos protos/proto/auth.proto protos/proto/catalog.proto protos/proto/order.proto protos/proto/logistics.proto protos/proto/payment.proto protos/proto/ai.proto",
+        "test": "jest"
     },
     "keywords": [],
     "author": "",
@@ -23,6 +24,8 @@
         "@opentelemetry/semantic-conventions": "^1.38.0",
         "@prisma/client": "7.0",
         "express": "^5.1.0",
+        "ioredis": "^5.8.2",
+        "jsonwebtoken": "^9.0.2",
         "pino": "^10.1.0",
         "pino-http": "^11.0.0",
         "pino-pretty": "^11.3.0",
@@ -31,12 +34,17 @@
     },
     "devDependencies": {
         "@types/express": "5.0",
+        "@types/ioredis": "^4.28.10",
+        "@types/jest": "^30.0.0",
+        "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^22.19.1",
         "@types/pino-http": "^5.8.4",
         "@types/uuid": "^10.0.0",
         "dotenv": "^17.2.3",
+        "jest": "^30.2.0",
         "nodemon": "3.1",
         "prisma": "7.0",
+        "ts-jest": "^29.4.5",
         "ts-node": "10.9",
         "typescript": "5.7"
     }

@@ -2,6 +2,8 @@
 
 import type * as grpc from '@grpc/grpc-js'
 import type { MethodDefinition } from '@grpc/proto-loader'
+import type { CreateFarmerAccountRequest as _cropfresh_auth_CreateFarmerAccountRequest, CreateFarmerAccountRequest__Output as _cropfresh_auth_CreateFarmerAccountRequest__Output } from '../../cropfresh/auth/CreateFarmerAccountRequest';
+import type { CreateFarmerAccountResponse as _cropfresh_auth_CreateFarmerAccountResponse, CreateFarmerAccountResponse__Output as _cropfresh_auth_CreateFarmerAccountResponse__Output } from '../../cropfresh/auth/CreateFarmerAccountResponse';
 import type { LoginRequest as _cropfresh_auth_LoginRequest, LoginRequest__Output as _cropfresh_auth_LoginRequest__Output } from '../../cropfresh/auth/LoginRequest';
 import type { LoginResponse as _cropfresh_auth_LoginResponse, LoginResponse__Output as _cropfresh_auth_LoginResponse__Output } from '../../cropfresh/auth/LoginResponse';
 import type { LogoutRequest as _cropfresh_auth_LogoutRequest, LogoutRequest__Output as _cropfresh_auth_LogoutRequest__Output } from '../../cropfresh/auth/LogoutRequest';
@@ -12,6 +14,15 @@ import type { VerifyTokenRequest as _cropfresh_auth_VerifyTokenRequest, VerifyTo
 import type { VerifyTokenResponse as _cropfresh_auth_VerifyTokenResponse, VerifyTokenResponse__Output as _cropfresh_auth_VerifyTokenResponse__Output } from '../../cropfresh/auth/VerifyTokenResponse';
 
 export interface AuthServiceClient extends grpc.Client {
+  CreateFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  CreateFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  CreateFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  CreateFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  createFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  createFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  createFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  createFarmerAccount(argument: _cropfresh_auth_CreateFarmerAccountRequest, callback: grpc.requestCallback<_cropfresh_auth_CreateFarmerAccountResponse__Output>): grpc.ClientUnaryCall;
+  
   Login(argument: _cropfresh_auth_LoginRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_LoginResponse__Output>): grpc.ClientUnaryCall;
   Login(argument: _cropfresh_auth_LoginRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_LoginResponse__Output>): grpc.ClientUnaryCall;
   Login(argument: _cropfresh_auth_LoginRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_LoginResponse__Output>): grpc.ClientUnaryCall;
@@ -51,6 +62,8 @@ export interface AuthServiceClient extends grpc.Client {
 }
 
 export interface AuthServiceHandlers extends grpc.UntypedServiceImplementation {
+  CreateFarmerAccount: grpc.handleUnaryCall<_cropfresh_auth_CreateFarmerAccountRequest__Output, _cropfresh_auth_CreateFarmerAccountResponse>;
+  
   Login: grpc.handleUnaryCall<_cropfresh_auth_LoginRequest__Output, _cropfresh_auth_LoginResponse>;
   
   Logout: grpc.handleUnaryCall<_cropfresh_auth_LogoutRequest__Output, _cropfresh_auth_LogoutResponse>;
@@ -62,6 +75,7 @@ export interface AuthServiceHandlers extends grpc.UntypedServiceImplementation {
 }
 
 export interface AuthServiceDefinition extends grpc.ServiceDefinition {
+  CreateFarmerAccount: MethodDefinition<_cropfresh_auth_CreateFarmerAccountRequest, _cropfresh_auth_CreateFarmerAccountResponse, _cropfresh_auth_CreateFarmerAccountRequest__Output, _cropfresh_auth_CreateFarmerAccountResponse__Output>
   Login: MethodDefinition<_cropfresh_auth_LoginRequest, _cropfresh_auth_LoginResponse, _cropfresh_auth_LoginRequest__Output, _cropfresh_auth_LoginResponse__Output>
   Logout: MethodDefinition<_cropfresh_auth_LogoutRequest, _cropfresh_auth_LogoutResponse, _cropfresh_auth_LogoutRequest__Output, _cropfresh_auth_LogoutResponse__Output>
   RefreshToken: MethodDefinition<_cropfresh_auth_RefreshTokenRequest, _cropfresh_auth_RefreshTokenResponse, _cropfresh_auth_RefreshTokenRequest__Output, _cropfresh_auth_RefreshTokenResponse__Output>
