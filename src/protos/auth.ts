@@ -19,6 +19,8 @@ export interface ProtoGrpcType {
       LogoutResponse: MessageTypeDefinition
       RefreshTokenRequest: MessageTypeDefinition
       RefreshTokenResponse: MessageTypeDefinition
+      RequestOtpRequest: MessageTypeDefinition
+      RequestOtpResponse: MessageTypeDefinition
       VerifyTokenRequest: MessageTypeDefinition
       VerifyTokenResponse: MessageTypeDefinition
     }

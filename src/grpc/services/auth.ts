@@ -87,6 +87,44 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
           details: 'Internal server error',
         });
       }
+    },
+    RequestOtp: async (call, callback) => {
+      const { phoneNumber } = call.request;
+      logger.info({ phoneNumber }, 'RequestOtp called');
+
+      try {
+        if (!phoneNumber) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Phone number is required',
+          });
+        }
+
+        const otp = await otpService.generateOTP(phoneNumber);
+
+        if (!otp) {
+          return callback({
+            code: grpc.status.RESOURCE_EXHAUSTED,
+            details: 'Rate limit exceeded for OTP generation',
+          });
+        }
+
+        // In a real application, send OTP via SMS here.
+        // For development, we log it.
+        logger.info({ phoneNumber, otp }, 'OTP Generated (DEV ONLY)');
+
+        callback(null, {
+          success: true,
+          message: 'OTP sent successfully',
+        });
+
+      } catch (error) {
+        logger.error({ error }, 'Error in RequestOtp');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
     }
   };
 };

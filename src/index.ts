@@ -1,5 +1,5 @@
 // Tracing (Must be first)
-import './tracing';
+// import './tracing';
 
 import { GrpcServer } from './grpc/server';
 import { authServiceHandlers } from './grpc/services/auth';
@@ -55,9 +55,9 @@ export default app;
 
 // gRPC Server Setup
 const GRPC_PORT = parseInt(process.env.GRPC_PORT || '50051', 10);
-const PROTO_PATH = path.join(__dirname, '../protos/proto/auth.proto');
+const PROTO_PATH = path.join(process.cwd(), 'protos/proto/auth.proto');
 const PACKAGE_NAME = 'cropfresh.auth';
-const SERVICE_NAME_GRPC = 'Service';
+const SERVICE_NAME_GRPC = 'AuthService';
 
 (async () => {
   try {

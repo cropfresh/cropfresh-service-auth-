@@ -22,7 +22,7 @@
         "@opentelemetry/resources": "^2.2.0",
         "@opentelemetry/sdk-node": "^0.208.0",
         "@opentelemetry/semantic-conventions": "^1.38.0",
-        "@prisma/client": "7.0",
+        "@prisma/client": "^5.22.0",
         "express": "^5.1.0",
         "ioredis": "^5.8.2",
         "jsonwebtoken": "^9.0.2",
@@ -43,7 +43,7 @@
         "dotenv": "^17.2.3",
         "jest": "^30.2.0",
         "nodemon": "3.1",
-        "prisma": "7.0",
+        "prisma": "^5.22.0",
         "ts-jest": "^29.4.5",
         "ts-node": "10.9",
         "typescript": "5.7"

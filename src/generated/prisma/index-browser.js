@@ -128,6 +128,12 @@ exports.Prisma.UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   language: 'language',
   isActive: 'isActive',
+  fullName: 'fullName',
+  address: 'address',
+  landSizeCategory: 'landSizeCategory',
+  cropTypes: 'cropTypes',
+  upiId: 'upiId',
+  profileCompletedAt: 'profileCompletedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -166,6 +172,12 @@ exports.UserRole = exports.$Enums.UserRole = {
   HAULER: 'HAULER',
   AGENT: 'AGENT',
   ADMIN: 'ADMIN'
+};
+
+exports.LandSizeCategory = exports.$Enums.LandSizeCategory = {
+  SMALL_FARM: 'SMALL_FARM',
+  MEDIUM_FARM: 'MEDIUM_FARM',
+  LARGE_FARM: 'LARGE_FARM'
 };
 
 exports.Prisma.ModelName = {

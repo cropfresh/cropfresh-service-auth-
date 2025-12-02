@@ -38,11 +38,24 @@ export namespace $Enums {
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
+
+export const LandSizeCategory: {
+  SMALL_FARM: 'SMALL_FARM',
+  MEDIUM_FARM: 'MEDIUM_FARM',
+  LARGE_FARM: 'LARGE_FARM'
+};
+
+export type LandSizeCategory = (typeof LandSizeCategory)[keyof typeof LandSizeCategory]
+
 }
 
 export type UserRole = $Enums.UserRole
 
 export const UserRole: typeof $Enums.UserRole
+
+export type LandSizeCategory = $Enums.LandSizeCategory
+
+export const LandSizeCategory: typeof $Enums.LandSizeCategory
 
 /**
  * ##  Prisma Client ʲˢ
@@ -1015,6 +1028,11 @@ export namespace Prisma {
     passwordHash: string | null
     language: string | null
     isActive: boolean | null
+    fullName: string | null
+    address: string | null
+    landSizeCategory: $Enums.LandSizeCategory | null
+    upiId: string | null
+    profileCompletedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -1028,6 +1046,11 @@ export namespace Prisma {
     passwordHash: string | null
     language: string | null
     isActive: boolean | null
+    fullName: string | null
+    address: string | null
+    landSizeCategory: $Enums.LandSizeCategory | null
+    upiId: string | null
+    profileCompletedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -1041,6 +1064,12 @@ export namespace Prisma {
     passwordHash: number
     language: number
     isActive: number
+    fullName: number
+    address: number
+    landSizeCategory: number
+    cropTypes: number
+    upiId: number
+    profileCompletedAt: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -1064,6 +1093,11 @@ export namespace Prisma {
     passwordHash?: true
     language?: true
     isActive?: true
+    fullName?: true
+    address?: true
+    landSizeCategory?: true
+    upiId?: true
+    profileCompletedAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -1077,6 +1111,11 @@ export namespace Prisma {
     passwordHash?: true
     language?: true
     isActive?: true
+    fullName?: true
+    address?: true
+    landSizeCategory?: true
+    upiId?: true
+    profileCompletedAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -1090,6 +1129,12 @@ export namespace Prisma {
     passwordHash?: true
     language?: true
     isActive?: true
+    fullName?: true
+    address?: true
+    landSizeCategory?: true
+    cropTypes?: true
+    upiId?: true
+    profileCompletedAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -1190,6 +1235,12 @@ export namespace Prisma {
     passwordHash: string | null
     language: string | null
     isActive: boolean
+    fullName: string | null
+    address: string | null
+    landSizeCategory: $Enums.LandSizeCategory | null
+    cropTypes: string[]
+    upiId: string | null
+    profileCompletedAt: Date | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -1222,6 +1273,12 @@ export namespace Prisma {
     passwordHash?: boolean
     language?: boolean
     isActive?: boolean
+    fullName?: boolean
+    address?: boolean
+    landSizeCategory?: boolean
+    cropTypes?: boolean
+    upiId?: boolean
+    profileCompletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -1237,6 +1294,12 @@ export namespace Prisma {
     passwordHash?: boolean
     language?: boolean
     isActive?: boolean
+    fullName?: boolean
+    address?: boolean
+    landSizeCategory?: boolean
+    cropTypes?: boolean
+    upiId?: boolean
+    profileCompletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -1250,6 +1313,12 @@ export namespace Prisma {
     passwordHash?: boolean
     language?: boolean
     isActive?: boolean
+    fullName?: boolean
+    address?: boolean
+    landSizeCategory?: boolean
+    cropTypes?: boolean
+    upiId?: boolean
+    profileCompletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -1263,12 +1332,18 @@ export namespace Prisma {
     passwordHash?: boolean
     language?: boolean
     isActive?: boolean
+    fullName?: boolean
+    address?: boolean
+    landSizeCategory?: boolean
+    cropTypes?: boolean
+    upiId?: boolean
+    profileCompletedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phone" | "name" | "role" | "passwordHash" | "language" | "isActive" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phone" | "name" | "role" | "passwordHash" | "language" | "isActive" | "fullName" | "address" | "landSizeCategory" | "cropTypes" | "upiId" | "profileCompletedAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -1289,6 +1364,12 @@ export namespace Prisma {
       passwordHash: string | null
       language: string | null
       isActive: boolean
+      fullName: string | null
+      address: string | null
+      landSizeCategory: $Enums.LandSizeCategory | null
+      cropTypes: string[]
+      upiId: string | null
+      profileCompletedAt: Date | null
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -1723,6 +1804,12 @@ export namespace Prisma {
     readonly passwordHash: FieldRef<"User", 'String'>
     readonly language: FieldRef<"User", 'String'>
     readonly isActive: FieldRef<"User", 'Boolean'>
+    readonly fullName: FieldRef<"User", 'String'>
+    readonly address: FieldRef<"User", 'String'>
+    readonly landSizeCategory: FieldRef<"User", 'LandSizeCategory'>
+    readonly cropTypes: FieldRef<"User", 'String[]'>
+    readonly upiId: FieldRef<"User", 'String'>
+    readonly profileCompletedAt: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
     readonly deletedAt: FieldRef<"User", 'DateTime'>
@@ -3339,6 +3426,12 @@ export namespace Prisma {
     passwordHash: 'passwordHash',
     language: 'language',
     isActive: 'isActive',
+    fullName: 'fullName',
+    address: 'address',
+    landSizeCategory: 'landSizeCategory',
+    cropTypes: 'cropTypes',
+    upiId: 'upiId',
+    profileCompletedAt: 'profileCompletedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -3442,6 +3535,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'LandSizeCategory'
+   */
+  export type EnumLandSizeCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LandSizeCategory'>
+    
+
+
+  /**
+   * Reference to a field of type 'LandSizeCategory[]'
+   */
+  export type ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LandSizeCategory[]'>
+    
+
+
+  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -3483,6 +3590,12 @@ export namespace Prisma {
     passwordHash?: StringNullableFilter<"User"> | string | null
     language?: StringNullableFilter<"User"> | string | null
     isActive?: BoolFilter<"User"> | boolean
+    fullName?: StringNullableFilter<"User"> | string | null
+    address?: StringNullableFilter<"User"> | string | null
+    landSizeCategory?: EnumLandSizeCategoryNullableFilter<"User"> | $Enums.LandSizeCategory | null
+    cropTypes?: StringNullableListFilter<"User">
+    upiId?: StringNullableFilter<"User"> | string | null
+    profileCompletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -3497,6 +3610,12 @@ export namespace Prisma {
     passwordHash?: SortOrderInput | SortOrder
     language?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    fullName?: SortOrderInput | SortOrder
+    address?: SortOrderInput | SortOrder
+    landSizeCategory?: SortOrderInput | SortOrder
+    cropTypes?: SortOrder
+    upiId?: SortOrderInput | SortOrder
+    profileCompletedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -3514,6 +3633,12 @@ export namespace Prisma {
     passwordHash?: StringNullableFilter<"User"> | string | null
     language?: StringNullableFilter<"User"> | string | null
     isActive?: BoolFilter<"User"> | boolean
+    fullName?: StringNullableFilter<"User"> | string | null
+    address?: StringNullableFilter<"User"> | string | null
+    landSizeCategory?: EnumLandSizeCategoryNullableFilter<"User"> | $Enums.LandSizeCategory | null
+    cropTypes?: StringNullableListFilter<"User">
+    upiId?: StringNullableFilter<"User"> | string | null
+    profileCompletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -3528,6 +3653,12 @@ export namespace Prisma {
     passwordHash?: SortOrderInput | SortOrder
     language?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    fullName?: SortOrderInput | SortOrder
+    address?: SortOrderInput | SortOrder
+    landSizeCategory?: SortOrderInput | SortOrder
+    cropTypes?: SortOrder
+    upiId?: SortOrderInput | SortOrder
+    profileCompletedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -3549,6 +3680,12 @@ export namespace Prisma {
     passwordHash?: StringNullableWithAggregatesFilter<"User"> | string | null
     language?: StringNullableWithAggregatesFilter<"User"> | string | null
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
+    fullName?: StringNullableWithAggregatesFilter<"User"> | string | null
+    address?: StringNullableWithAggregatesFilter<"User"> | string | null
+    landSizeCategory?: EnumLandSizeCategoryNullableWithAggregatesFilter<"User"> | $Enums.LandSizeCategory | null
+    cropTypes?: StringNullableListFilter<"User">
+    upiId?: StringNullableWithAggregatesFilter<"User"> | string | null
+    profileCompletedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -3643,6 +3780,12 @@ export namespace Prisma {
     passwordHash?: string | null
     language?: string | null
     isActive?: boolean
+    fullName?: string | null
+    address?: string | null
+    landSizeCategory?: $Enums.LandSizeCategory | null
+    cropTypes?: UserCreatecropTypesInput | string[]
+    upiId?: string | null
+    profileCompletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -3657,6 +3800,12 @@ export namespace Prisma {
     passwordHash?: string | null
     language?: string | null
     isActive?: boolean
+    fullName?: string | null
+    address?: string | null
+    landSizeCategory?: $Enums.LandSizeCategory | null
+    cropTypes?: UserCreatecropTypesInput | string[]
+    upiId?: string | null
+    profileCompletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -3670,6 +3819,12 @@ export namespace Prisma {
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     language?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    landSizeCategory?: NullableEnumLandSizeCategoryFieldUpdateOperationsInput | $Enums.LandSizeCategory | null
+    cropTypes?: UserUpdatecropTypesInput | string[]
+    upiId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3684,6 +3839,12 @@ export namespace Prisma {
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     language?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    landSizeCategory?: NullableEnumLandSizeCategoryFieldUpdateOperationsInput | $Enums.LandSizeCategory | null
+    cropTypes?: UserUpdatecropTypesInput | string[]
+    upiId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3698,6 +3859,12 @@ export namespace Prisma {
     passwordHash?: string | null
     language?: string | null
     isActive?: boolean
+    fullName?: string | null
+    address?: string | null
+    landSizeCategory?: $Enums.LandSizeCategory | null
+    cropTypes?: UserCreatecropTypesInput | string[]
+    upiId?: string | null
+    profileCompletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -3710,6 +3877,12 @@ export namespace Prisma {
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     language?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    landSizeCategory?: NullableEnumLandSizeCategoryFieldUpdateOperationsInput | $Enums.LandSizeCategory | null
+    cropTypes?: UserUpdatecropTypesInput | string[]
+    upiId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3723,6 +3896,12 @@ export namespace Prisma {
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     language?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    landSizeCategory?: NullableEnumLandSizeCategoryFieldUpdateOperationsInput | $Enums.LandSizeCategory | null
+    cropTypes?: UserUpdatecropTypesInput | string[]
+    upiId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3868,15 +4047,19 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
-  export type DateTimeFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  export type EnumLandSizeCategoryNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.LandSizeCategory | EnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    in?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumLandSizeCategoryNullableFilter<$PrismaModel> | $Enums.LandSizeCategory | null
+  }
+
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
   }
 
   export type DateTimeNullableFilter<$PrismaModel = never> = {
@@ -3888,6 +4071,17 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
   export type SessionListRelationFilter = {
@@ -3913,6 +4107,12 @@ export namespace Prisma {
     passwordHash?: SortOrder
     language?: SortOrder
     isActive?: SortOrder
+    fullName?: SortOrder
+    address?: SortOrder
+    landSizeCategory?: SortOrder
+    cropTypes?: SortOrder
+    upiId?: SortOrder
+    profileCompletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -3930,6 +4130,11 @@ export namespace Prisma {
     passwordHash?: SortOrder
     language?: SortOrder
     isActive?: SortOrder
+    fullName?: SortOrder
+    address?: SortOrder
+    landSizeCategory?: SortOrder
+    upiId?: SortOrder
+    profileCompletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -3943,6 +4148,11 @@ export namespace Prisma {
     passwordHash?: SortOrder
     language?: SortOrder
     isActive?: SortOrder
+    fullName?: SortOrder
+    address?: SortOrder
+    landSizeCategory?: SortOrder
+    upiId?: SortOrder
+    profileCompletedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -4022,18 +4232,14 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
+  export type EnumLandSizeCategoryNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.LandSizeCategory | EnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    in?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumLandSizeCategoryNullableWithAggregatesFilter<$PrismaModel> | $Enums.LandSizeCategory | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumLandSizeCategoryNullableFilter<$PrismaModel>
+    _max?: NestedEnumLandSizeCategoryNullableFilter<$PrismaModel>
   }
 
   export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -4048,6 +4254,20 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type UserScalarRelationFilter = {
@@ -4104,6 +4324,10 @@ export namespace Prisma {
     userId?: SortOrder
   }
 
+  export type UserCreatecropTypesInput = {
+    set: string[]
+  }
+
   export type SessionCreateNestedManyWithoutUserInput = {
     create?: XOR<SessionCreateWithoutUserInput, SessionUncheckedCreateWithoutUserInput> | SessionCreateWithoutUserInput[] | SessionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: SessionCreateOrConnectWithoutUserInput | SessionCreateOrConnectWithoutUserInput[]
@@ -4134,12 +4358,21 @@ export namespace Prisma {
     set?: boolean
   }
 
-  export type DateTimeFieldUpdateOperationsInput = {
-    set?: Date | string
+  export type NullableEnumLandSizeCategoryFieldUpdateOperationsInput = {
+    set?: $Enums.LandSizeCategory | null
+  }
+
+  export type UserUpdatecropTypesInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
+  }
+
+  export type DateTimeFieldUpdateOperationsInput = {
+    set?: Date | string
   }
 
   export type SessionUpdateManyWithoutUserNestedInput = {
@@ -4243,15 +4476,11 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
-  export type NestedDateTimeFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  export type NestedEnumLandSizeCategoryNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.LandSizeCategory | EnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    in?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumLandSizeCategoryNullableFilter<$PrismaModel> | $Enums.LandSizeCategory | null
   }
 
   export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
@@ -4263,6 +4492,17 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -4355,18 +4595,14 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
+  export type NestedEnumLandSizeCategoryNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.LandSizeCategory | EnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    in?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.LandSizeCategory[] | ListEnumLandSizeCategoryFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumLandSizeCategoryNullableWithAggregatesFilter<$PrismaModel> | $Enums.LandSizeCategory | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumLandSizeCategoryNullableFilter<$PrismaModel>
+    _max?: NestedEnumLandSizeCategoryNullableFilter<$PrismaModel>
   }
 
   export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -4381,6 +4617,20 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type SessionCreateWithoutUserInput = {
@@ -4455,6 +4705,12 @@ export namespace Prisma {
     passwordHash?: string | null
     language?: string | null
     isActive?: boolean
+    fullName?: string | null
+    address?: string | null
+    landSizeCategory?: $Enums.LandSizeCategory | null
+    cropTypes?: UserCreatecropTypesInput | string[]
+    upiId?: string | null
+    profileCompletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -4468,6 +4724,12 @@ export namespace Prisma {
     passwordHash?: string | null
     language?: string | null
     isActive?: boolean
+    fullName?: string | null
+    address?: string | null
+    landSizeCategory?: $Enums.LandSizeCategory | null
+    cropTypes?: UserCreatecropTypesInput | string[]
+    upiId?: string | null
+    profileCompletedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -4496,6 +4758,12 @@ export namespace Prisma {
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     language?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    landSizeCategory?: NullableEnumLandSizeCategoryFieldUpdateOperationsInput | $Enums.LandSizeCategory | null
+    cropTypes?: UserUpdatecropTypesInput | string[]
+    upiId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4509,6 +4777,12 @@ export namespace Prisma {
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
     language?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    landSizeCategory?: NullableEnumLandSizeCategoryFieldUpdateOperationsInput | $Enums.LandSizeCategory | null
+    cropTypes?: UserUpdatecropTypesInput | string[]
+    upiId?: NullableStringFieldUpdateOperationsInput | string | null
+    profileCompletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
