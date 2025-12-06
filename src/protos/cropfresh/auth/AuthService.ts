@@ -10,8 +10,12 @@ import type { LogoutRequest as _cropfresh_auth_LogoutRequest, LogoutRequest__Out
 import type { LogoutResponse as _cropfresh_auth_LogoutResponse, LogoutResponse__Output as _cropfresh_auth_LogoutResponse__Output } from '../../cropfresh/auth/LogoutResponse';
 import type { RefreshTokenRequest as _cropfresh_auth_RefreshTokenRequest, RefreshTokenRequest__Output as _cropfresh_auth_RefreshTokenRequest__Output } from '../../cropfresh/auth/RefreshTokenRequest';
 import type { RefreshTokenResponse as _cropfresh_auth_RefreshTokenResponse, RefreshTokenResponse__Output as _cropfresh_auth_RefreshTokenResponse__Output } from '../../cropfresh/auth/RefreshTokenResponse';
+import type { RequestLoginOtpRequest as _cropfresh_auth_RequestLoginOtpRequest, RequestLoginOtpRequest__Output as _cropfresh_auth_RequestLoginOtpRequest__Output } from '../../cropfresh/auth/RequestLoginOtpRequest';
+import type { RequestLoginOtpResponse as _cropfresh_auth_RequestLoginOtpResponse, RequestLoginOtpResponse__Output as _cropfresh_auth_RequestLoginOtpResponse__Output } from '../../cropfresh/auth/RequestLoginOtpResponse';
 import type { RequestOtpRequest as _cropfresh_auth_RequestOtpRequest, RequestOtpRequest__Output as _cropfresh_auth_RequestOtpRequest__Output } from '../../cropfresh/auth/RequestOtpRequest';
 import type { RequestOtpResponse as _cropfresh_auth_RequestOtpResponse, RequestOtpResponse__Output as _cropfresh_auth_RequestOtpResponse__Output } from '../../cropfresh/auth/RequestOtpResponse';
+import type { VerifyLoginOtpRequest as _cropfresh_auth_VerifyLoginOtpRequest, VerifyLoginOtpRequest__Output as _cropfresh_auth_VerifyLoginOtpRequest__Output } from '../../cropfresh/auth/VerifyLoginOtpRequest';
+import type { VerifyLoginOtpResponse as _cropfresh_auth_VerifyLoginOtpResponse, VerifyLoginOtpResponse__Output as _cropfresh_auth_VerifyLoginOtpResponse__Output } from '../../cropfresh/auth/VerifyLoginOtpResponse';
 import type { VerifyTokenRequest as _cropfresh_auth_VerifyTokenRequest, VerifyTokenRequest__Output as _cropfresh_auth_VerifyTokenRequest__Output } from '../../cropfresh/auth/VerifyTokenRequest';
 import type { VerifyTokenResponse as _cropfresh_auth_VerifyTokenResponse, VerifyTokenResponse__Output as _cropfresh_auth_VerifyTokenResponse__Output } from '../../cropfresh/auth/VerifyTokenResponse';
 
@@ -52,6 +56,15 @@ export interface AuthServiceClient extends grpc.Client {
   refreshToken(argument: _cropfresh_auth_RefreshTokenRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RefreshTokenResponse__Output>): grpc.ClientUnaryCall;
   refreshToken(argument: _cropfresh_auth_RefreshTokenRequest, callback: grpc.requestCallback<_cropfresh_auth_RefreshTokenResponse__Output>): grpc.ClientUnaryCall;
   
+  RequestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  RequestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  RequestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  RequestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  requestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  requestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  requestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  requestLoginOtp(argument: _cropfresh_auth_RequestLoginOtpRequest, callback: grpc.requestCallback<_cropfresh_auth_RequestLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  
   RequestOtp(argument: _cropfresh_auth_RequestOtpRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestOtpResponse__Output>): grpc.ClientUnaryCall;
   RequestOtp(argument: _cropfresh_auth_RequestOtpRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_RequestOtpResponse__Output>): grpc.ClientUnaryCall;
   RequestOtp(argument: _cropfresh_auth_RequestOtpRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestOtpResponse__Output>): grpc.ClientUnaryCall;
@@ -60,6 +73,15 @@ export interface AuthServiceClient extends grpc.Client {
   requestOtp(argument: _cropfresh_auth_RequestOtpRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_RequestOtpResponse__Output>): grpc.ClientUnaryCall;
   requestOtp(argument: _cropfresh_auth_RequestOtpRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_RequestOtpResponse__Output>): grpc.ClientUnaryCall;
   requestOtp(argument: _cropfresh_auth_RequestOtpRequest, callback: grpc.requestCallback<_cropfresh_auth_RequestOtpResponse__Output>): grpc.ClientUnaryCall;
+  
+  VerifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  VerifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  VerifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  VerifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  verifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  verifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  verifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
+  verifyLoginOtp(argument: _cropfresh_auth_VerifyLoginOtpRequest, callback: grpc.requestCallback<_cropfresh_auth_VerifyLoginOtpResponse__Output>): grpc.ClientUnaryCall;
   
   VerifyToken(argument: _cropfresh_auth_VerifyTokenRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_cropfresh_auth_VerifyTokenResponse__Output>): grpc.ClientUnaryCall;
   VerifyToken(argument: _cropfresh_auth_VerifyTokenRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_cropfresh_auth_VerifyTokenResponse__Output>): grpc.ClientUnaryCall;
@@ -81,7 +103,11 @@ export interface AuthServiceHandlers extends grpc.UntypedServiceImplementation {
   
   RefreshToken: grpc.handleUnaryCall<_cropfresh_auth_RefreshTokenRequest__Output, _cropfresh_auth_RefreshTokenResponse>;
   
+  RequestLoginOtp: grpc.handleUnaryCall<_cropfresh_auth_RequestLoginOtpRequest__Output, _cropfresh_auth_RequestLoginOtpResponse>;
+  
   RequestOtp: grpc.handleUnaryCall<_cropfresh_auth_RequestOtpRequest__Output, _cropfresh_auth_RequestOtpResponse>;
+  
+  VerifyLoginOtp: grpc.handleUnaryCall<_cropfresh_auth_VerifyLoginOtpRequest__Output, _cropfresh_auth_VerifyLoginOtpResponse>;
   
   VerifyToken: grpc.handleUnaryCall<_cropfresh_auth_VerifyTokenRequest__Output, _cropfresh_auth_VerifyTokenResponse>;
   
@@ -92,6 +118,8 @@ export interface AuthServiceDefinition extends grpc.ServiceDefinition {
   Login: MethodDefinition<_cropfresh_auth_LoginRequest, _cropfresh_auth_LoginResponse, _cropfresh_auth_LoginRequest__Output, _cropfresh_auth_LoginResponse__Output>
   Logout: MethodDefinition<_cropfresh_auth_LogoutRequest, _cropfresh_auth_LogoutResponse, _cropfresh_auth_LogoutRequest__Output, _cropfresh_auth_LogoutResponse__Output>
   RefreshToken: MethodDefinition<_cropfresh_auth_RefreshTokenRequest, _cropfresh_auth_RefreshTokenResponse, _cropfresh_auth_RefreshTokenRequest__Output, _cropfresh_auth_RefreshTokenResponse__Output>
+  RequestLoginOtp: MethodDefinition<_cropfresh_auth_RequestLoginOtpRequest, _cropfresh_auth_RequestLoginOtpResponse, _cropfresh_auth_RequestLoginOtpRequest__Output, _cropfresh_auth_RequestLoginOtpResponse__Output>
   RequestOtp: MethodDefinition<_cropfresh_auth_RequestOtpRequest, _cropfresh_auth_RequestOtpResponse, _cropfresh_auth_RequestOtpRequest__Output, _cropfresh_auth_RequestOtpResponse__Output>
+  VerifyLoginOtp: MethodDefinition<_cropfresh_auth_VerifyLoginOtpRequest, _cropfresh_auth_VerifyLoginOtpResponse, _cropfresh_auth_VerifyLoginOtpRequest__Output, _cropfresh_auth_VerifyLoginOtpResponse__Output>
   VerifyToken: MethodDefinition<_cropfresh_auth_VerifyTokenRequest, _cropfresh_auth_VerifyTokenResponse, _cropfresh_auth_VerifyTokenRequest__Output, _cropfresh_auth_VerifyTokenResponse__Output>
 }

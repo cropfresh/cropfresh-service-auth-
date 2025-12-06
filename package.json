@@ -39,12 +39,14 @@
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^22.19.1",
         "@types/pino-http": "^5.8.4",
+        "@types/supertest": "^6.0.3",
         "@types/uuid": "^10.0.0",
         "dotenv": "^17.2.3",
         "jest": "^30.2.0",
         "nodemon": "3.1",
         "prisma": "^5.22.0",
-        "ts-jest": "^29.4.5",
+        "supertest": "^7.1.4",
+        "ts-jest": "^29.4.6",
         "ts-node": "10.9",
         "typescript": "5.7"
     }

@@ -66,6 +66,7 @@ export class GrpcServer {
   private wrapMethod(methodName: string, handler: grpc.handleUnaryCall<any, any>): grpc.handleUnaryCall<any, any> {
     return (call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>) => {
       const traceId = this.getTraceId(call.metadata);
+      const startTime = Date.now(); // Start timer for metrics
 
       // Run within AsyncLocalStorage context
       asyncLocalStorage.run({ traceId }, () => {
@@ -75,6 +76,9 @@ export class GrpcServer {
           childLogger.info('gRPC call started');
 
           handler(call, (err: any, value?: any, trailer?: grpc.Metadata, flags?: number) => {
+            const duration = (Date.now() - startTime) / 1000; // Duration in seconds
+            let statusCode = 'OK';
+
             if (err) {
               childLogger.error({ err }, 'gRPC call failed');
               if (!err.code) {
@@ -84,9 +88,20 @@ export class GrpcServer {
                   metadata: err.metadata
                 };
               }
+              statusCode = grpc.status[err.code] || 'UNKNOWN';
             } else {
               childLogger.info('gRPC call completed');
             }
+
+            // Record gRPC metrics (imported dynamically to avoid circular dependency)
+            try {
+              const { grpcRequestDuration, grpcRequestTotal } = require('../middleware/monitoring');
+              grpcRequestDuration.labels('auth-service', methodName, statusCode).observe(duration);
+              grpcRequestTotal.labels('auth-service', methodName, statusCode).inc();
+            } catch (metricsErr) {
+              // Silently fail if metrics not available
+            }
+
             callback(err, value, trailer, flags);
           });
         } catch (err: any) {
@@ -95,6 +110,17 @@ export class GrpcServer {
             code: grpc.status.INTERNAL,
             details: err.message || 'Internal Server Error'
           };
+
+          // Record error metrics
+          try {
+            const { grpcRequestDuration, grpcRequestTotal } = require('../middleware/monitoring');
+            const duration = (Date.now() - startTime) / 1000;
+            grpcRequestDuration.labels('auth-service', methodName, 'INTERNAL').observe(duration);
+            grpcRequestTotal.labels('auth-service', methodName, 'INTERNAL').inc();
+          } catch (metricsErr) {
+            // Silently fail if metrics not available
+          }
+
           callback(grpcError, null);
         }
       });
