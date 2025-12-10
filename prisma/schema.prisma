@@ -1,6 +1,7 @@
 // Prisma Schema - Auth Service
 // Database: cropfresh_auth
-// Purpose: User authentication, sessions, roles
+// Purpose: User authentication, sessions, roles, farmer profiles, payment details
+// Updated: 2025-12-07 for Story 2.1 (10-step onboarding)
 
 generator client {
   provider   = "prisma-client-js"
@@ -22,32 +23,123 @@ model User {
   language           String?         @default("en") @map("language_preference") @db.VarChar(10)
   isActive           Boolean         @default(true) @map("is_active")
   
-  // Farmer Profile Fields (Story 2.1 - AC5)
-  fullName           String?         @map("full_name") @db.VarChar(255)
-  address            String?         @db.Text
-  landSizeCategory   LandSizeCategory? @map("land_size_category")
-  cropTypes          String[]        @map("crop_types")
-  upiId              String?         @map("upi_id") @db.VarChar(100)
-  profileCompletedAt DateTime?       @map("profile_completed_at") @db.Timestamptz(6)
+  // Email (Story 2.3 - Buyer Registration)
+  email              String?         @unique @db.VarChar(255)
+  emailVerified      Boolean         @default(false) @map("email_verified")
+  emailVerifiedAt    DateTime?       @map("email_verified_at") @db.Timestamptz(6)
+  
+  // PIN Authentication (Story 2.1 - AC8)
+  pinHash            String?         @map("pin_hash") @db.VarChar(255)
+  pinAttempts        Int             @default(0) @map("pin_attempts")
+  lockedUntil        DateTime?       @map("locked_until") @db.Timestamptz(6)
+  lastLoginAt        DateTime?       @map("last_login_at") @db.Timestamptz(6)
   
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt          DateTime?       @map("deleted_at") @db.Timestamptz(6)
 
-  sessions Session[]
+  // Relations
+  sessions        Session[]
+  farmerProfile   FarmerProfile?
+  buyerProfile    BuyerProfile?
+  paymentDetails  PaymentDetails[]
 
   @@map("users")
+}
+
+// FarmerProfile Model - Extended profile for farmers (Story 2.1 - AC5, AC6)
+model FarmerProfile {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique @map("user_id")
+  
+  // Personal Info (AC5)
+  fullName        String    @map("full_name") @db.VarChar(255)
+  village         String?   @db.VarChar(255)
+  taluk           String?   @db.VarChar(255)
+  district        String    @db.VarChar(255)
+  state           String    @db.VarChar(255)
+  pincode         String?   @db.VarChar(10)
+  
+  // Farm Info (AC6)
+  farmSize        FarmSize  @map("farm_size")
+  farmingTypes    String[]  @map("farming_types")
+  mainCrops       String[]  @map("main_crops")
+  
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("farmer_profiles")
+}
+
+// BuyerProfile Model - Extended profile for buyers (Story 2.3)
+model BuyerProfile {
+  id              Int           @id @default(autoincrement())
+  userId          Int           @unique @map("user_id")
+  
+  // Business Info (Story 2.3 - AC1)
+  businessName    String        @map("business_name") @db.VarChar(255)
+  businessType    BusinessType  @map("business_type")
+  gstNumber       String?       @map("gst_number") @db.VarChar(15)
+  
+  // Business Address
+  addressLine1    String        @map("address_line1") @db.VarChar(255)
+  addressLine2    String?       @map("address_line2") @db.VarChar(255)
+  city            String        @db.VarChar(100)
+  state           String        @db.VarChar(100)
+  pincode         String        @db.VarChar(10)
+  
+  // Location (optional GPS coordinates)
+  latitude        Float?
+  longitude       Float?
+  
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("buyer_profiles")
+}
+
+// PaymentDetails Model - UPI/Bank for farmers (Story 2.1 - AC7)
+model PaymentDetails {
+  id              Int             @id @default(autoincrement())
+  userId          Int             @map("user_id")
+  paymentType     PaymentType     @map("payment_type")
+  
+  // UPI Details
+  upiId           String?         @map("upi_id") @db.VarChar(100)
+  
+  // Bank Details
+  bankAccount     String?         @map("bank_account") @db.VarChar(20)
+  ifscCode        String?         @map("ifsc_code") @db.VarChar(11)
+  bankName        String?         @map("bank_name") @db.VarChar(100)
+  
+  // Verification
+  isVerified      Boolean         @default(false) @map("is_verified")
+  verifiedAt      DateTime?       @map("verified_at") @db.Timestamptz(6)
+  isPrimary       Boolean         @default(false) @map("is_primary")
+  
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_details")
 }
 
 // Session Model - Active user sessions
 model Session {
   id           Int       @id @default(autoincrement())
   userId       Int       @map("user_id")
+  deviceId     String?   @map("device_id") @db.VarChar(255)
   token        String    @unique @db.VarChar(500)
   refreshToken String?   @map("refresh_token") @db.VarChar(500)
   expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
   ipAddress    String?   @map("ip_address") @db.VarChar(45)
   userAgent    String?   @map("user_agent") @db.Text
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(6)
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -57,7 +149,8 @@ model Session {
   @@map("sessions")
 }
 
-// UserRole Enum
+// Enums
+
 enum UserRole {
   FARMER
   BUYER
@@ -66,9 +159,61 @@ enum UserRole {
   ADMIN
 }
 
-// LandSizeCategory Enum (Story 2.1 - AC5)
-enum LandSizeCategory {
-  SMALL_FARM  // 1-2 acres
-  MEDIUM_FARM // 3-5 acres
-  LARGE_FARM  // 5+ acres
+// Farm size categories (Story 2.1 - AC6)
+enum FarmSize {
+  SMALL   // <2 acres
+  MEDIUM  // 2-5 acres
+  LARGE   // >5 acres
+}
+
+// Payment type (Story 2.1 - AC7)
+enum PaymentType {
+  UPI
+  BANK
+}
+
+// Business type for buyers (Story 2.3 - AC1)
+// 28 types across 7 categories
+enum BusinessType {
+  // Food Service (7)
+  RESTAURANT
+  HOTEL
+  CATERER
+  CANTEEN
+  CLOUD_KITCHEN
+  CAFE
+  FAST_FOOD_CHAIN
+  
+  // Retail (5)
+  SUPERMARKET
+  GROCERY_STORE
+  HYPERMARKET
+  CONVENIENCE_STORE
+  ORGANIC_STORE
+  
+  // Wholesale (4)
+  WHOLESALER
+  DISTRIBUTOR
+  COMMISSION_AGENT
+  TRADER
+  
+  // Processing (4)
+  FOOD_PROCESSOR
+  JUICE_MANUFACTURER
+  FROZEN_FOOD_COMPANY
+  PICKLE_MANUFACTURER
+  
+  // Export (3)
+  EXPORTER
+  EXPORT_HOUSE
+  INTERNATIONAL_TRADER
+  
+  // Institutional (4)
+  HOSPITAL
+  SCHOOL_COLLEGE
+  CORPORATE_CAFETERIA
+  GOVERNMENT_INSTITUTION
+  
+  // Specialty (1)
+  FARM_TO_TABLE
 }

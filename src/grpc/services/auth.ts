@@ -5,6 +5,8 @@ import { OtpService } from '../../services/otp-service';
 import { LoginLockoutService } from '../../services/login-lockout-service';
 import { UserRepository } from '../../repositories/user-repository';
 import { SessionRepository } from '../../repositories/session-repository';
+import { FarmerProfileRepository } from '../../repositories/farmer-profile-repository';
+import { RazorpayService } from '../../services/razorpay-service';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
@@ -17,6 +19,8 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
   const loginLockoutService = new LoginLockoutService();
   const userRepository = new UserRepository();
   const sessionRepository = new SessionRepository();
+  const farmerProfileRepository = new FarmerProfileRepository();
+  const razorpayService = new RazorpayService();
 
   return {
     Login: (call, callback) => {
@@ -322,7 +326,7 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
           refreshToken,
           user: {
             id: user.id.toString(),
-            name: user.name || user.fullName || '',
+            name: user.name || '',
             phone: user.phone,
             userType: user.role,
             language: user.language || 'en',
@@ -331,6 +335,414 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
 
       } catch (error) {
         logger.error({ error }, 'Error in VerifyLoginOtp');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // =====================================================
+    // Story 2.1 - Complete Onboarding Handlers
+    // =====================================================
+
+    // Create Farmer Profile (AC5)
+    CreateFarmerProfile: async (call, callback) => {
+      const { userId, fullName, village, taluk, district, state, pincode } = call.request;
+      logger.info({ userId }, 'CreateFarmerProfile called');
+
+      try {
+        if (!userId || !fullName || !district || !state) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'User ID, full name, district, and state are required',
+          });
+        }
+
+        const profile = await farmerProfileRepository.createProfile({
+          userId: parseInt(userId, 10),
+          fullName,
+          village: village || undefined,
+          taluk: taluk || undefined,
+          district,
+          state,
+          pincode: pincode || undefined,
+        });
+
+        callback(null, {
+          success: true,
+          message: 'Profile created successfully',
+          profile: {
+            id: profile.id.toString(),
+            userId: profile.userId.toString(),
+            fullName: profile.fullName,
+            village: profile.village || '',
+            taluk: profile.taluk || '',
+            district: profile.district,
+            state: profile.state,
+            pincode: profile.pincode || '',
+            farmSize: profile.farmSize,
+            farmingTypes: profile.farmingTypes,
+            mainCrops: profile.mainCrops,
+          },
+        });
+      } catch (error: any) {
+        if (error.message === 'PROFILE_EXISTS') {
+          return callback({
+            code: grpc.status.ALREADY_EXISTS,
+            details: 'Profile already exists for this user',
+          });
+        }
+        logger.error({ error }, 'Error in CreateFarmerProfile');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Update Farmer Profile (AC5)
+    UpdateFarmerProfile: async (call, callback) => {
+      const { userId, fullName, village, taluk, district, state, pincode } = call.request;
+      logger.info({ userId }, 'UpdateFarmerProfile called');
+
+      try {
+        if (!userId) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'User ID is required',
+          });
+        }
+
+        const profile = await farmerProfileRepository.updateProfile(parseInt(userId, 10), {
+          fullName: fullName || undefined,
+          village: village || undefined,
+          taluk: taluk || undefined,
+          district: district || undefined,
+          state: state || undefined,
+          pincode: pincode || undefined,
+        });
+
+        callback(null, {
+          success: true,
+          message: 'Profile updated successfully',
+          profile: {
+            id: profile.id.toString(),
+            userId: profile.userId.toString(),
+            fullName: profile.fullName,
+            village: profile.village || '',
+            taluk: profile.taluk || '',
+            district: profile.district,
+            state: profile.state,
+            pincode: profile.pincode || '',
+            farmSize: profile.farmSize,
+            farmingTypes: profile.farmingTypes,
+            mainCrops: profile.mainCrops,
+          },
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in UpdateFarmerProfile');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Save Farm Profile (AC6)
+    SaveFarmProfile: async (call, callback) => {
+      const { userId, farmSize, farmingTypes, mainCrops } = call.request;
+      logger.info({ userId }, 'SaveFarmProfile called');
+
+      try {
+        if (!userId || !farmSize) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'User ID and farm size are required',
+          });
+        }
+
+        const validFarmSizes = ['SMALL', 'MEDIUM', 'LARGE'];
+        if (!validFarmSizes.includes(farmSize)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Invalid farm size. Must be SMALL, MEDIUM, or LARGE',
+          });
+        }
+
+        const profile = await farmerProfileRepository.updateFarmProfile({
+          userId: parseInt(userId, 10),
+          farmSize: farmSize as 'SMALL' | 'MEDIUM' | 'LARGE',
+          farmingTypes: farmingTypes || [],
+          mainCrops: mainCrops || [],
+        });
+
+        callback(null, {
+          success: true,
+          message: 'Farm profile saved successfully',
+          profile: {
+            id: profile.id.toString(),
+            userId: profile.userId.toString(),
+            fullName: profile.fullName,
+            village: profile.village || '',
+            taluk: profile.taluk || '',
+            district: profile.district,
+            state: profile.state,
+            pincode: profile.pincode || '',
+            farmSize: profile.farmSize,
+            farmingTypes: profile.farmingTypes,
+            mainCrops: profile.mainCrops,
+          },
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in SaveFarmProfile');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Add Payment Details (AC7)
+    AddPaymentDetails: async (call, callback) => {
+      const { userId, paymentType, upiId, bankAccount, ifscCode, bankName } = call.request;
+      logger.info({ userId, paymentType }, 'AddPaymentDetails called');
+
+      try {
+        if (!userId || !paymentType) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'User ID and payment type are required',
+          });
+        }
+
+        if (paymentType === 'UPI' && !upiId) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'UPI ID is required for UPI payment type',
+          });
+        }
+
+        if (paymentType === 'BANK' && (!bankAccount || !ifscCode)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Bank account and IFSC code are required for BANK payment type',
+          });
+        }
+
+        const payment = await farmerProfileRepository.addPaymentDetails({
+          userId: parseInt(userId, 10),
+          paymentType: paymentType as 'UPI' | 'BANK',
+          upiId: upiId || undefined,
+          bankAccount: bankAccount || undefined,
+          ifscCode: ifscCode || undefined,
+          bankName: bankName || undefined,
+          isPrimary: true,
+        });
+
+        callback(null, {
+          success: true,
+          message: 'Payment details added successfully',
+          payment: {
+            id: payment.id.toString(),
+            userId: payment.userId.toString(),
+            paymentType: payment.paymentType,
+            upiId: payment.upiId || '',
+            bankAccount: payment.bankAccount || '',
+            ifscCode: payment.ifscCode || '',
+            bankName: payment.bankName || '',
+            isVerified: payment.isVerified,
+            isPrimary: payment.isPrimary,
+          },
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in AddPaymentDetails');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Verify UPI (AC7)
+    VerifyUpi: async (call, callback) => {
+      const { upiId } = call.request;
+      logger.info({ upiId }, 'VerifyUpi called');
+
+      try {
+        if (!upiId) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'UPI ID is required',
+          });
+        }
+
+        const result = await razorpayService.validateVpa(upiId);
+
+        callback(null, {
+          valid: result.valid,
+          customerName: result.customerName || '',
+          message: result.message,
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in VerifyUpi');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Set PIN (AC8)
+    SetPin: async (call, callback) => {
+      const { userId, pin } = call.request;
+      logger.info({ userId }, 'SetPin called');
+
+      try {
+        if (!userId || !pin) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'User ID and PIN are required',
+          });
+        }
+
+        if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'PIN must be exactly 4 digits',
+          });
+        }
+
+        // Hash the PIN using bcrypt
+        const bcrypt = require('bcrypt');
+        const pinHash = await bcrypt.hash(pin, 10);
+
+        await farmerProfileRepository.setUserPin(parseInt(userId, 10), pinHash);
+
+        callback(null, {
+          success: true,
+          message: 'PIN set successfully',
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in SetPin');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Login with PIN (AC8)
+    LoginWithPin: async (call, callback) => {
+      const { userId, pin, deviceId } = call.request;
+      logger.info({ userId, deviceId }, 'LoginWithPin called');
+
+      try {
+        if (!userId || !pin) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'User ID and PIN are required',
+          });
+        }
+
+        const user = await farmerProfileRepository.getUserForPinLogin(parseInt(userId, 10));
+
+        if (!user) {
+          return callback({
+            code: grpc.status.NOT_FOUND,
+            details: 'User not found',
+          });
+        }
+
+        if (!user.isActive) {
+          return callback({
+            code: grpc.status.PERMISSION_DENIED,
+            details: 'Account is deactivated',
+          });
+        }
+
+        // Check if account is locked
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
+          return callback({
+            code: grpc.status.PERMISSION_DENIED,
+            details: JSON.stringify({
+              error: 'ACCOUNT_LOCKED',
+              message: 'Account locked due to too many failed attempts',
+              lockedUntil: user.lockedUntil.toISOString(),
+            }),
+          });
+        }
+
+        if (!user.pinHash) {
+          return callback({
+            code: grpc.status.FAILED_PRECONDITION,
+            details: 'PIN not set for this user',
+          });
+        }
+
+        // Verify PIN
+        const bcrypt = require('bcrypt');
+        const isValid = await bcrypt.compare(pin, user.pinHash);
+
+        if (!isValid) {
+          // Record failed attempt
+          await farmerProfileRepository.recordFailedPinAttempt(user.id, user.pinAttempts);
+          const remainingAttempts = Math.max(0, 4 - user.pinAttempts);
+
+          return callback({
+            code: grpc.status.UNAUTHENTICATED,
+            details: JSON.stringify({
+              error: 'INVALID_PIN',
+              message: 'Incorrect PIN',
+              remainingAttempts,
+            }),
+          });
+        }
+
+        // Clear failed attempts
+        await farmerProfileRepository.clearPinAttempts(user.id);
+
+        // Invalidate existing sessions
+        await sessionRepository.invalidateUserSessions(user.id);
+
+        // Generate new tokens
+        const token = jwt.sign(
+          {
+            sub: user.id.toString(),
+            userId: user.id,
+            userType: user.role,
+            deviceId: deviceId || 'unknown',
+          },
+          JWT_SECRET,
+          { expiresIn: '30d' }
+        );
+
+        const refreshToken = jwt.sign(
+          { userId: user.id },
+          JWT_SECRET,
+          { expiresIn: '60d' }
+        );
+
+        // Create session
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await sessionRepository.createSession(user.id, token, refreshToken, expiresAt);
+
+        callback(null, {
+          success: true,
+          token,
+          refreshToken,
+          user: {
+            id: user.id.toString(),
+            name: user.name || '',
+            phone: user.phone,
+            userType: user.role,
+            language: user.language || 'en',
+          },
+          message: 'Login successful',
+          remainingAttempts: 5,
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in LoginWithPin');
         callback({
           code: grpc.status.INTERNAL,
           details: 'Internal server error',
