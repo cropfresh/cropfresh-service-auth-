@@ -3,12 +3,15 @@ import { AuthServiceHandlers } from '../../protos/cropfresh/auth/AuthService';
 import { Logger } from 'pino';
 import { OtpService } from '../../services/otp-service';
 import { LoginLockoutService } from '../../services/login-lockout-service';
+import { PasswordValidationService } from '../../services/password-validation-service';
 import { UserRepository } from '../../repositories/user-repository';
 import { SessionRepository } from '../../repositories/session-repository';
 import { FarmerProfileRepository } from '../../repositories/farmer-profile-repository';
+import { BuyerRepository } from '../../repositories/buyer-repository';
 import { RazorpayService } from '../../services/razorpay-service';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, BusinessType } from '@prisma/client';
+import valkey from '../../utils/valkey';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_me';
 const OTP_TTL_SECONDS = 600; // 10 minutes
@@ -17,9 +20,11 @@ const prisma = new PrismaClient();
 export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
   const otpService = new OtpService();
   const loginLockoutService = new LoginLockoutService();
+  const passwordValidationService = new PasswordValidationService();
   const userRepository = new UserRepository();
   const sessionRepository = new SessionRepository();
   const farmerProfileRepository = new FarmerProfileRepository();
+  const buyerRepository = new BuyerRepository();
   const razorpayService = new RazorpayService();
 
   return {
@@ -743,6 +748,273 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
         });
       } catch (error) {
         logger.error({ error }, 'Error in LoginWithPin');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // =====================================================
+    // Story 2.3 - Buyer Business Account Creation Handlers
+    // =====================================================
+
+    // Register Buyer - Step 1: Validate input and send OTP
+    RegisterBuyer: async (call, callback) => {
+      const { businessName, businessType, email, password, mobileNumber, gstNumber } = call.request;
+      logger.info({ email, mobileNumber, businessType }, 'RegisterBuyer called');
+
+      try {
+        // Validate required fields
+        if (!businessName || !businessType || !email || !password || !mobileNumber) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Business name, type, email, password, and mobile are required',
+          });
+        }
+
+        // Validate email format
+        if (!passwordValidationService.validateEmail(email)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Invalid email format',
+          });
+        }
+
+        // Validate mobile number
+        if (!passwordValidationService.validateMobileNumber(mobileNumber)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Invalid mobile number. Must be a valid Indian mobile number.',
+          });
+        }
+
+        // Validate password strength
+        const passwordValidation = passwordValidationService.validatePassword(password);
+        if (!passwordValidation.isValid) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: JSON.stringify({
+              error: 'WEAK_PASSWORD',
+              message: 'Password does not meet requirements',
+              errors: passwordValidation.errors,
+            }),
+          });
+        }
+
+        // Validate GST number if provided
+        if (gstNumber && !passwordValidationService.validateGstNumber(gstNumber)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Invalid GST number format. Must be 15 alphanumeric characters.',
+          });
+        }
+
+        // Check for duplicate email
+        const emailExists = await buyerRepository.emailExists(email);
+        if (emailExists) {
+          return callback({
+            code: grpc.status.ALREADY_EXISTS,
+            details: JSON.stringify({
+              error: 'EMAIL_EXISTS',
+              message: 'An account with this email already exists',
+            }),
+          });
+        }
+
+        // Check for duplicate phone
+        const phoneExists = await buyerRepository.phoneExists(mobileNumber);
+        if (phoneExists) {
+          return callback({
+            code: grpc.status.ALREADY_EXISTS,
+            details: JSON.stringify({
+              error: 'PHONE_EXISTS',
+              message: 'An account with this mobile number already exists',
+            }),
+          });
+        }
+
+        // Validate business type
+        const validBusinessTypes = [
+          'RESTAURANT', 'HOTEL', 'CATERER', 'CANTEEN', 'CLOUD_KITCHEN', 'CAFE', 'FAST_FOOD_CHAIN',
+          'SUPERMARKET', 'GROCERY_STORE', 'HYPERMARKET', 'CONVENIENCE_STORE', 'ORGANIC_STORE',
+          'WHOLESALER', 'DISTRIBUTOR', 'COMMISSION_AGENT', 'TRADER',
+          'FOOD_PROCESSOR', 'JUICE_MANUFACTURER', 'FROZEN_FOOD_COMPANY', 'PICKLE_MANUFACTURER',
+          'EXPORTER', 'EXPORT_HOUSE', 'INTERNATIONAL_TRADER',
+          'HOSPITAL', 'SCHOOL_COLLEGE', 'CORPORATE_CAFETERIA', 'GOVERNMENT_INSTITUTION',
+          'FARM_TO_TABLE'
+        ];
+        if (!validBusinessTypes.includes(businessType)) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Invalid business type',
+          });
+        }
+
+        // Hash password
+        const passwordHash = await passwordValidationService.hashPassword(password);
+
+        // Store pending registration data in Valkey (expires in 10 minutes)
+        const registrationKey = `buyer_reg:${mobileNumber}`;
+        await valkey.setex(registrationKey, OTP_TTL_SECONDS, JSON.stringify({
+          businessName,
+          businessType,
+          email: email.toLowerCase(),
+          passwordHash,
+          mobileNumber,
+          gstNumber: gstNumber || null,
+        }));
+
+        // Generate and send OTP
+        const otp = await otpService.generateOTP(mobileNumber);
+        if (!otp) {
+          return callback({
+            code: grpc.status.RESOURCE_EXHAUSTED,
+            details: 'Rate limit exceeded for OTP generation',
+          });
+        }
+
+        logger.info({ mobileNumber, otp }, 'Buyer registration OTP generated (DEV ONLY)');
+
+        callback(null, {
+          success: true,
+          message: 'OTP sent to your mobile number',
+          expiresIn: OTP_TTL_SECONDS,
+          passwordErrors: [],
+        });
+
+      } catch (error) {
+        logger.error({ error }, 'Error in RegisterBuyer');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Verify Buyer OTP - Step 2: Verify OTP and create account
+    VerifyBuyerOtp: async (call, callback) => {
+      const { mobileNumber, otp, address } = call.request;
+      logger.info({ mobileNumber }, 'VerifyBuyerOtp called');
+
+      try {
+        if (!mobileNumber || !otp) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Mobile number and OTP are required',
+          });
+        }
+
+        if (!address || !address.addressLine1 || !address.city || !address.state || !address.pincode) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Address with line1, city, state, and pincode is required',
+          });
+        }
+
+        // Verify OTP
+        const isValid = await otpService.verifyOTP(mobileNumber, otp);
+        if (!isValid) {
+          return callback({
+            code: grpc.status.UNAUTHENTICATED,
+            details: JSON.stringify({
+              error: 'INVALID_OTP',
+              message: 'Invalid or expired OTP',
+            }),
+          });
+        }
+
+        // Retrieve pending registration data
+        const registrationKey = `buyer_reg:${mobileNumber}`;
+        const registrationDataStr = await valkey.get(registrationKey);
+        if (!registrationDataStr) {
+          return callback({
+            code: grpc.status.NOT_FOUND,
+            details: 'Registration session expired. Please start again.',
+          });
+        }
+
+        const registrationData = JSON.parse(registrationDataStr);
+
+        // Create buyer account
+        const buyer = await buyerRepository.createBuyer({
+          phone: mobileNumber,
+          email: registrationData.email,
+          passwordHash: registrationData.passwordHash,
+          businessName: registrationData.businessName,
+          businessType: registrationData.businessType as BusinessType,
+          gstNumber: registrationData.gstNumber,
+          address: {
+            addressLine1: address.addressLine1,
+            addressLine2: address.addressLine2 || undefined,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+            latitude: address.latitude || undefined,
+            longitude: address.longitude || undefined,
+          },
+        });
+
+        // Clean up registration data
+        await valkey.del(registrationKey);
+
+        // Generate JWT tokens
+        const token = jwt.sign(
+          {
+            sub: buyer.id.toString(),
+            userId: buyer.id,
+            userType: 'BUYER',
+          },
+          JWT_SECRET,
+          { expiresIn: '30d' }
+        );
+
+        const refreshToken = jwt.sign(
+          { userId: buyer.id },
+          JWT_SECRET,
+          { expiresIn: '60d' }
+        );
+
+        // Create session
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        await sessionRepository.createSession(buyer.id, token, refreshToken, expiresAt);
+
+        // Update last login
+        await buyerRepository.updateLastLogin(buyer.id);
+
+        logger.info({ userId: buyer.id, email: buyer.email }, 'Buyer account created successfully');
+
+        // Send welcome SMS (TODO: implement in production)
+        logger.info({ mobileNumber }, 'Welcome SMS would be sent here');
+
+        callback(null, {
+          success: true,
+          token,
+          refreshToken,
+          buyer: {
+            id: buyer.buyerProfile?.id.toString() || '',
+            userId: buyer.id.toString(),
+            businessName: buyer.buyerProfile?.businessName || '',
+            businessType: buyer.buyerProfile?.businessType || '',
+            email: buyer.email || '',
+            mobileNumber: buyer.phone,
+            gstNumber: buyer.buyerProfile?.gstNumber || '',
+            address: {
+              addressLine1: buyer.buyerProfile?.addressLine1 || '',
+              addressLine2: buyer.buyerProfile?.addressLine2 || '',
+              city: buyer.buyerProfile?.city || '',
+              state: buyer.buyerProfile?.state || '',
+              pincode: buyer.buyerProfile?.pincode || '',
+              latitude: buyer.buyerProfile?.latitude || 0,
+              longitude: buyer.buyerProfile?.longitude || 0,
+            },
+            emailVerified: buyer.emailVerified || false,
+          },
+          message: 'Account created successfully',
+        });
+
+      } catch (error) {
+        logger.error({ error }, 'Error in VerifyBuyerOtp');
         callback({
           code: grpc.status.INTERNAL,
           details: 'Internal server error',
