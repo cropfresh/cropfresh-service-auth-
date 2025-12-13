@@ -1,6 +1,5 @@
-import { PrismaClient, BusinessType, User, BuyerProfile } from '@prisma/client';
+import { prisma, BusinessType, User, BuyerProfile } from '../lib/prisma';
 
-const prisma = new PrismaClient();
 
 /**
  * Buyer Repository

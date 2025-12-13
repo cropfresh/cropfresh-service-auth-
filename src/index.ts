@@ -8,11 +8,10 @@ import express from 'express';
 import { logger } from './utils/logger';
 import { requestLogger, traceIdMiddleware } from './middleware/logging';
 import { monitoringMiddleware, metricsHandler } from './middleware/monitoring';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './lib/prisma';
 import { livenessHandler, createReadinessHandler } from './middleware/health';
 
 const app = express();
-const prisma = new PrismaClient();
 
 const PORT = process.env.PORT || 3001;
 const SERVICE_NAME = 'Authentication Service';

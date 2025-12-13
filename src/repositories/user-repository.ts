@@ -1,8 +1,7 @@
-import { PrismaClient, User, UserRole, FarmerProfile, PaymentDetails, FarmSize, PaymentType } from '@prisma/client';
+import { prisma, User, UserRole, FarmerProfile, PaymentDetails, FarmSize, PaymentType } from '../lib/prisma';
 import bcrypt from 'bcrypt';
 import { logger } from '../utils/logger';
 
-const prisma = new PrismaClient();
 const PIN_SALT_ROUNDS = 12;
 const MAX_PIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 30;

@@ -1,5 +1,6 @@
 import { valkey } from '../utils/valkey';
 import { logger } from '../utils/logger';
+import { ExotelService } from './exotel-service';
 import crypto from 'crypto';
 
 const OTP_TTL_SECONDS = 600; // 10 minutes
@@ -7,6 +8,12 @@ const RATE_LIMIT_WINDOW_SECONDS = 600; // 10 minutes
 const MAX_ATTEMPTS_PER_WINDOW = 3;
 
 export class OtpService {
+    private exotelService: ExotelService;
+
+    constructor() {
+        this.exotelService = new ExotelService();
+    }
+
     /**
      * Generates a 6-digit OTP
      */
@@ -16,11 +23,12 @@ export class OtpService {
 
     /**
      * Generates and stores an OTP for a given phone number.
+     * If Exotel is enabled, sends OTP via SMS.
      * Checks rate limits before generating.
      * @param phoneNumber The phone number to generate OTP for
-     * @returns The generated OTP or null if rate limit exceeded
+     * @returns Object with OTP (for dev logging) and success status
      */
-    async generateOTP(phoneNumber: string): Promise<string | null> {
+    async generateOTP(phoneNumber: string): Promise<{ otp: string | null; smsSent: boolean; message: string }> {
         const rateLimitKey = `otp:rate:${phoneNumber}`;
         const attempts = await valkey.incr(rateLimitKey);
 
@@ -30,27 +38,42 @@ export class OtpService {
 
         if (attempts > MAX_ATTEMPTS_PER_WINDOW) {
             logger.warn({ phoneNumber }, 'OTP rate limit exceeded');
-            return null;
+            return { otp: null, smsSent: false, message: 'Rate limit exceeded. Try again in 10 minutes.' };
         }
 
         const otp = this.generateNumericOTP();
         const otpKey = `otp:farmer:${phoneNumber}`;
 
-        // Store OTP with hash for security (simple hash for now, can be enhanced)
-        // For this implementation, we'll store the plain OTP but in a real prod env, consider hashing
-        // However, since we need to send it, we usually store the plain one briefly or generate, send, then hash.
-        // Given the requirement "Verify entered OTP against stored hash", we will store a hash.
-        // But wait, if we store a hash, we can't retrieve it to send it via SMS if the SMS sending is async/decoupled?
-        // Usually, you generate -> send -> store hash.
-        // Let's assume the caller will handle sending immediately after generation.
-
-        // Using simple sha256 for storage
+        // Store OTP hash in Valkey
         const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
-
         await valkey.setex(otpKey, OTP_TTL_SECONDS, otpHash);
         logger.info({ phoneNumber }, 'OTP generated and stored');
 
-        return otp;
+        // Try to send via Exotel if enabled
+        if (this.exotelService.isEnabled()) {
+            const smsResult = await this.exotelService.sendOTP(phoneNumber);
+            if (smsResult.success) {
+                logger.info({ phoneNumber, verificationId: smsResult.verificationId }, 'OTP sent via Exotel');
+                return { otp, smsSent: true, message: 'OTP sent successfully' };
+            } else {
+                logger.warn({ phoneNumber, error: smsResult.message }, 'Exotel SMS failed, OTP stored locally');
+                // Still return the OTP for dev testing even if SMS fails
+                return { otp, smsSent: false, message: `SMS failed: ${smsResult.message}. OTP stored locally.` };
+            }
+        } else {
+            // Dev mode - just log the OTP
+            logger.info({ phoneNumber, otp }, 'OTP Generated (DEV MODE - Exotel disabled)');
+            return { otp, smsSent: false, message: 'OTP generated (dev mode - check logs)' };
+        }
+    }
+
+    /**
+     * Simplified generateOTP for backward compatibility
+     * Returns just the OTP string or null if rate limited
+     */
+    async generateOTPSimple(phoneNumber: string): Promise<string | null> {
+        const result = await this.generateOTP(phoneNumber);
+        return result.otp;
     }
 
     /**
@@ -73,10 +96,6 @@ export class OtpService {
         if (storedHash === providedHash) {
             // OTP matched, consume it (delete it) so it can't be reused
             await valkey.del(otpKey);
-            // Also clear rate limit on successful verification?
-            // Usually better to keep rate limit to prevent spamming even if successful,
-            // but for login/registration, maybe we want to allow fresh start.
-            // Let's keep rate limit for now to be safe against abuse.
             logger.info({ phoneNumber }, 'OTP verified successfully');
             return true;
         }
@@ -84,4 +103,12 @@ export class OtpService {
         logger.warn({ phoneNumber }, 'OTP verification failed: Invalid OTP');
         return false;
     }
+
+    /**
+     * Check if SMS is enabled (Exotel configured)
+     */
+    isSmsEnabled(): boolean {
+        return this.exotelService.isEnabled();
+    }
 }
+

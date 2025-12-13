@@ -10,12 +10,17 @@ import { FarmerProfileRepository } from '../../repositories/farmer-profile-repos
 import { BuyerRepository } from '../../repositories/buyer-repository';
 import { RazorpayService } from '../../services/razorpay-service';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, BusinessType } from '@prisma/client';
-import valkey from '../../utils/valkey';
+import { prisma, BusinessType } from '../../lib/prisma';
+import { valkey } from '../../utils/valkey';
+// Story 2.4 - Modular Team Management Handlers
+import { createTeamHandlers } from '../handlers/team-handlers';
+// Story 2.5 - Modular Hauler Registration Handlers
+import { createHaulerHandlers } from '../handlers/hauler-handlers';
+// Story 2.6 - Modular Agent Provisioning Handlers
+import { createAgentHandlers } from '../handlers/agent-handlers';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'change_me';
 const OTP_TTL_SECONDS = 600; // 10 minutes
-const prisma = new PrismaClient();
 
 export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
   const otpService = new OtpService();
@@ -27,7 +32,24 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
   const buyerRepository = new BuyerRepository();
   const razorpayService = new RazorpayService();
 
+  // Story 2.4 - Team Management Handlers (modular)
+  const teamHandlers = createTeamHandlers({ logger });
+
+  // Story 2.5 - Hauler Registration Handlers (modular)
+  const haulerHandlers = createHaulerHandlers({ logger });
+
+  // Story 2.6 - Agent Provisioning Handlers (modular)
+  const agentHandlers = createAgentHandlers(logger);
+
   return {
+    // Spread team handlers for modular organization
+    ...teamHandlers,
+    // Spread hauler handlers for Story 2.5
+    ...haulerHandlers,
+    // Spread agent handlers for Story 2.6
+    ...agentHandlers,
+
+
     Login: (call, callback) => {
       logger.info('Login called');
       callback(null, { token: 'stub-token', refreshToken: 'stub-refresh-token' });
@@ -104,9 +126,12 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
         });
       }
     },
-    RequestOtp: async (call, callback) => {
-      const { phoneNumber } = call.request;
-      logger.info({ phoneNumber }, 'RequestOtp called');
+    // SendOtp - matches proto definition (formerly RequestOtp)
+    SendOtp: async (call: any, callback: any) => {
+      // Proto uses 'phone' field, not 'phoneNumber'
+      const request = call.request as any;
+      const phoneNumber = request.phone || request.phoneNumber;
+      logger.info({ phoneNumber }, 'SendOtp called');
 
       try {
         if (!phoneNumber) {
@@ -116,22 +141,66 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
           });
         }
 
-        const otp = await otpService.generateOTP(phoneNumber);
+        const result = await otpService.generateOTP(phoneNumber);
 
-        if (!otp) {
+        if (!result.otp) {
           return callback({
             code: grpc.status.RESOURCE_EXHAUSTED,
-            details: 'Rate limit exceeded for OTP generation',
+            details: result.message || 'Rate limit exceeded for OTP generation',
           });
         }
 
-        // In a real application, send OTP via SMS here.
-        // For development, we log it.
-        logger.info({ phoneNumber, otp }, 'OTP Generated (DEV ONLY)');
+        // Log OTP in dev mode for testing
+        if (!result.smsSent) {
+          logger.info({ phoneNumber, otp: result.otp }, 'OTP Generated (DEV MODE - check logs)');
+        }
 
         callback(null, {
           success: true,
-          message: 'OTP sent successfully',
+          message: result.message,
+          expires_in_seconds: 600,  // Match proto response
+        });
+
+      } catch (error) {
+        logger.error({ error }, 'Error in SendOtp');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // Alias for TypeScript types compatibility (types expect RequestOtp)
+    RequestOtp: async (call: any, callback: any) => {
+      // Proto uses 'phone' field, not 'phoneNumber' 
+      const phoneNumber = call.request.phone || call.request.phoneNumber;
+      logger.info({ phoneNumber }, 'RequestOtp/SendOtp called');
+
+      try {
+        if (!phoneNumber) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Phone number is required',
+          });
+        }
+
+        const result = await otpService.generateOTP(phoneNumber);
+
+        if (!result.otp) {
+          return callback({
+            code: grpc.status.RESOURCE_EXHAUSTED,
+            details: result.message || 'Rate limit exceeded for OTP generation',
+          });
+        }
+
+        if (!result.smsSent) {
+          logger.info({ phoneNumber, otp: result.otp }, 'OTP Generated (DEV MODE)');
+        }
+
+        callback(null, {
+          success: true,
+          message: result.message,
+          expiresIn: 600,
         });
 
       } catch (error) {
@@ -189,18 +258,20 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
           });
         }
 
-        // Generate and store OTP
-        const otp = await otpService.generateOTP(phoneNumber);
+        // Generate and store OTP (with SMS if Exotel enabled)
+        const result = await otpService.generateOTP(phoneNumber);
 
-        if (!otp) {
+        if (!result.otp) {
           return callback({
             code: grpc.status.RESOURCE_EXHAUSTED,
-            details: 'Rate limit exceeded for OTP generation',
+            details: result.message || 'Rate limit exceeded for OTP generation',
           });
         }
 
-        // In production, send OTP via SMS here
-        logger.info({ phoneNumber, otp }, 'Login OTP Generated (DEV ONLY)');
+        // Log OTP in dev mode for testing
+        if (!result.smsSent) {
+          logger.info({ phoneNumber, otp: result.otp }, 'Login OTP Generated (DEV MODE)');
+        }
 
         callback(null, {
           success: true,
@@ -571,8 +642,11 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
 
     // Verify UPI (AC7)
     VerifyUpi: async (call, callback) => {
-      const { upiId } = call.request;
-      logger.info({ upiId }, 'VerifyUpi called');
+      // Gateway sends snake_case (upi_id), but TypeScript types use camelCase (upiId)
+      // Try both formats to handle either proto-loader configuration
+      const request = call.request as any;
+      const upiId = request.upiId || request.upi_id;
+      logger.info({ upiId, rawRequest: request }, 'VerifyUpi called');
 
       try {
         if (!upiId) {
@@ -760,7 +834,7 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
     // =====================================================
 
     // Register Buyer - Step 1: Validate input and send OTP
-    RegisterBuyer: async (call, callback) => {
+    RegisterBuyer: async (call: any, callback: any) => {
       const { businessName, businessType, email, password, mobileNumber, gstNumber } = call.request;
       logger.info({ email, mobileNumber, businessType }, 'RegisterBuyer called');
 
@@ -893,7 +967,7 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
     },
 
     // Verify Buyer OTP - Step 2: Verify OTP and create account
-    VerifyBuyerOtp: async (call, callback) => {
+    VerifyBuyerOtp: async (call: any, callback: any) => {
       const { mobileNumber, otp, address } = call.request;
       logger.info({ mobileNumber }, 'VerifyBuyerOtp called');
 
@@ -1015,6 +1089,184 @@ export const authServiceHandlers = (logger: Logger): AuthServiceHandlers => {
 
       } catch (error) {
         logger.error({ error }, 'Error in VerifyBuyerOtp');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // =====================================================
+    // Story 2.3 - Buyer Login & Password Management Handlers
+    // =====================================================
+
+    // AC7: Buyer Email/Password Login
+    LoginBuyer: async (call: any, callback: any) => {
+      const { email, password } = call.request;
+      logger.info({ email }, 'LoginBuyer called');
+
+      try {
+        if (!email || !password) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Email and password are required',
+          });
+        }
+
+        const { buyerLoginService } = await import('../../services/buyer-login-service');
+        const result = await buyerLoginService.login(email, password);
+
+        if (!result.success) {
+          if (result.errorCode === 'ACCOUNT_LOCKED') {
+            return callback({
+              code: grpc.status.RESOURCE_EXHAUSTED,
+              details: JSON.stringify({
+                error: 'ACCOUNT_LOCKED',
+                message: result.message,
+                lockedUntilMinutes: result.lockedUntilMinutes,
+              }),
+            });
+          }
+          return callback({
+            code: grpc.status.UNAUTHENTICATED,
+            details: JSON.stringify({
+              error: result.errorCode || 'INVALID_CREDENTIALS',
+              message: result.message,
+              remainingAttempts: result.remainingAttempts,
+            }),
+          });
+        }
+
+        callback(null, {
+          success: true,
+          token: result.token,
+          refreshToken: result.refreshToken,
+          buyer: result.buyer ? {
+            id: result.buyer.buyerProfile?.id.toString() || '',
+            userId: result.buyer.id.toString(),
+            businessName: result.buyer.buyerProfile?.businessName || '',
+            businessType: result.buyer.buyerProfile?.businessType || '',
+            email: result.buyer.email || '',
+            mobileNumber: result.buyer.phone,
+            gstNumber: result.buyer.buyerProfile?.gstNumber || '',
+            emailVerified: result.buyer.emailVerified || false,
+          } : undefined,
+          message: 'Login successful',
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in LoginBuyer');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // AC12: Buyer Logout
+    LogoutBuyer: async (call: any, callback: any) => {
+      const { token } = call.request;
+      logger.info('LogoutBuyer called');
+
+      try {
+        if (!token) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Token is required',
+          });
+        }
+
+        const { buyerLoginService } = await import('../../services/buyer-login-service');
+        const result = await buyerLoginService.logout(token);
+
+        callback(null, {
+          success: result.success,
+          message: result.message,
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in LogoutBuyer');
+        callback({
+          code: grpc.status.INTERNAL,
+          details: 'Internal server error',
+        });
+      }
+    },
+
+    // AC9: Forgot Password
+    ForgotPassword: async (call: any, callback: any) => {
+      const { email } = call.request;
+      logger.info({ email }, 'ForgotPassword called');
+
+      try {
+        if (!email) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Email is required',
+          });
+        }
+
+        const { buyerLoginService } = await import('../../services/buyer-login-service');
+        const result = await buyerLoginService.forgotPassword(email);
+
+        // Always return success to prevent email enumeration
+        callback(null, {
+          success: true,
+          message: result.message,
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in ForgotPassword');
+        // Still return success to prevent enumeration
+        callback(null, {
+          success: true,
+          message: 'If this email exists, we\'ve sent a reset link.',
+        });
+      }
+    },
+
+    // AC9: Reset Password
+    ResetPassword: async (call: any, callback: any) => {
+      const { token, newPassword } = call.request;
+      logger.info('ResetPassword called');
+
+      try {
+        if (!token || !newPassword) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: 'Token and new password are required',
+          });
+        }
+
+        const { buyerLoginService } = await import('../../services/buyer-login-service');
+        const result = await buyerLoginService.resetPassword(token, newPassword);
+
+        if (!result.success) {
+          return callback({
+            code: grpc.status.INVALID_ARGUMENT,
+            details: JSON.stringify({
+              error: result.errorCode,
+              message: result.message,
+              passwordErrors: result.passwordErrors,
+            }),
+          });
+        }
+
+        callback(null, {
+          success: true,
+          token: result.token,
+          refreshToken: result.refreshToken,
+          buyer: result.buyer ? {
+            id: result.buyer.buyerProfile?.id.toString() || '',
+            userId: result.buyer.id.toString(),
+            businessName: result.buyer.buyerProfile?.businessName || '',
+            businessType: result.buyer.buyerProfile?.businessType || '',
+            email: result.buyer.email || '',
+            mobileNumber: result.buyer.phone,
+            gstNumber: result.buyer.buyerProfile?.gstNumber || '',
+            emailVerified: result.buyer.emailVerified || false,
+          } : undefined,
+          message: result.message,
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error in ResetPassword');
         callback({
           code: grpc.status.INTERNAL,
           details: 'Internal server error',

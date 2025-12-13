@@ -1,7 +1,6 @@
-import { PrismaClient, FarmSize, Prisma } from '@prisma/client';
+import { prisma, FarmSize, Prisma } from '../lib/prisma';
 import { logger } from '../utils/logger';
 
-const prisma = new PrismaClient();
 
 interface CreateFarmerProfileData {
     userId: number;

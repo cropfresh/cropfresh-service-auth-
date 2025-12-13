@@ -70,8 +70,8 @@ export class ExotelService {
         }
 
         // Ensure phone number has +91 prefix
-        const formattedPhone = phoneNumber.startsWith('+') 
-            ? phoneNumber 
+        const formattedPhone = phoneNumber.startsWith('+')
+            ? phoneNumber
             : `+91${phoneNumber.replace(/^91/, '')}`;
 
         const url = `${EXOTEL_BASE_URL}/${this.accountSid}/verifications/sms`;
@@ -96,11 +96,11 @@ export class ExotelService {
             }
 
             const data = await response.json() as ExotelSendResponse;
-            
-            logger.info({ 
-                phoneNumber, 
+
+            logger.info({
+                phoneNumber,
                 verificationId: data.verification?.id,
-                status: data.verification?.status 
+                status: data.verification?.status
             }, 'Exotel OTP sent successfully');
 
             return {
@@ -147,7 +147,7 @@ export class ExotelService {
             }
 
             const data = await response.json() as ExotelVerifyResponse;
-            
+
             if (data.verification?.code_verified) {
                 logger.info({ verificationId }, 'Exotel OTP verified successfully');
                 return { success: true, message: 'OTP verified' };
@@ -158,6 +158,64 @@ export class ExotelService {
         } catch (error) {
             logger.error({ error, verificationId }, 'Error verifying OTP via Exotel');
             return { success: false, message: 'Failed to verify OTP' };
+        }
+    }
+
+    /**
+     * Send a transactional SMS notification (Story 2.5 - AC6, AC7)
+     * Uses Exotel's SMS API for sending notifications like:
+     * - Registration confirmation
+     * - Account approval/rejection
+     * 
+     * Note: In production, use proper Exotel SMS templates for compliance
+     * 
+     * @param phoneNumber Phone number to send SMS to
+     * @param message SMS message content
+     * @returns Success status and message
+     */
+    async sendSMS(phoneNumber: string, message: string): Promise<{ success: boolean; message: string }> {
+        if (!this.isEnabled()) {
+            // In dev mode, just log the message
+            logger.info({ phoneNumber, smsMessage: message }, '[DEV] SMS notification (not sent)');
+            return { success: true, message: 'SMS logged (dev mode)' };
+        }
+
+        // Ensure phone number has +91 prefix
+        const formattedPhone = phoneNumber.startsWith('+')
+            ? phoneNumber
+            : `+91${phoneNumber.replace(/^91/, '')}`;
+
+        // Exotel SMS API endpoint (different from OTP API)
+        // Using the Exotel Platform SMS API
+        const url = `https://api.exotel.com/v1/Accounts/${this.accountSid}/Sms/send`;
+
+        try {
+            // Exotel SMS API uses form data
+            const formData = new URLSearchParams();
+            formData.append('From', process.env.EXOTEL_SENDER_ID || 'CRPFSH');
+            formData.append('To', formattedPhone);
+            formData.append('Body', message);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Basic ${Buffer.from(`${this.appId}:${this.appSecret}`).toString('base64')}`,
+                },
+                body: formData.toString(),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                logger.error({ phoneNumber, status: response.status, error: errorText }, 'Exotel SMS send failed');
+                return { success: false, message: `SMS send failed: ${response.status}` };
+            }
+
+            logger.info({ phoneNumber }, 'Exotel SMS sent successfully');
+            return { success: true, message: 'SMS sent successfully' };
+        } catch (error) {
+            logger.error({ error, phoneNumber }, 'Error sending SMS via Exotel');
+            return { success: false, message: 'Failed to send SMS' };
         }
     }
 }

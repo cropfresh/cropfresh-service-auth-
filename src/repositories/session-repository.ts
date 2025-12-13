@@ -1,8 +1,7 @@
-import { PrismaClient, Session } from '@prisma/client';
+import { prisma, Session } from '../lib/prisma';
 import { logger } from '../utils/logger';
 import crypto from 'crypto';
 
-const prisma = new PrismaClient();
 
 export class SessionRepository {
     /**

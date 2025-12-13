@@ -23,6 +23,8 @@
     "node_modules",
     "dist",
     "jest.config.js",
-    "scripts"
+    "scripts",
+    "prisma.config.ts",
+    "prisma.config.js"
   ]
 }
